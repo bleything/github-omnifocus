@@ -10,45 +10,25 @@ require 'yaml'
 Octokit.auto_paginate = true
 
 # This method adds a new Task to OmniFocus based on the new_task_properties passed in
-def add_task(new_task_properties)
-  # If there is a passed in OF project name, get the actual project object
-  if new_task_properties['project']
-    proj_name = new_task_properties["project"]
-    proj = @omnifocus.flattened_tasks[proj_name]
-  end
-
+def add_task(task)
   # Check to see if there's already an OF Task with that name in the referenced Project
   # If there is, just stop.
-  name   = new_task_properties["name"]
+  name = task[:name]
   #exists = proj.tasks.get.find { |t| t.name.get.force_encoding("UTF-8") == name }
   # You can un-comment the line below and comment the line above if you want to search your entire OF document, instead of a specific project.
   exists = @omnifocus.flattened_tasks.get.find { |t| t.name.get.force_encoding("UTF-8") == name }
   return false if exists
 
-  # If there is a passed in OF context name, get the actual context object
-  if new_task_properties['context']
-    ctx_name = new_task_properties["context"]
-    ctx = @omnifocus.flattened_contexts[ctx_name]
-  end
-
-  # Do some task property filtering.  I don't know what this is for, but found it in several other scripts that didn't work...
-  tprops = new_task_properties.inject({}) do |h, (k, v)|
-    h[:"#{k}"] = v
-    h
-  end
-
-  # Remove the project property from the new Task properties, as it won't be used like that.
-  tprops.delete(:project)
-  # Update the context property to be the actual context object not the context name
-  tprops[:context] = ctx if new_task_properties['context']
+  task[:context] = @omnifocus.flattened_contexts[@context]
+  task[:flagged] = @flag
 
   # You can uncomment this line and comment the one below if you want the tasks to end up in your Inbox instead of a specific Project
   #  new_task = @omnifocus.make(new: :inbox_task, with_properties: tprops)
 
   # Make a new Task in the Project
-  proj.make(new: :task, with_properties: tprops)
+  @omnifocus.flattened_tasks[@project].make(new: :task, with_properties: task)
 
-  puts "Created task " + tprops[:name]
+  puts "Created task " + task[:name]
   return true
 end
 
@@ -80,19 +60,7 @@ def add_github_issues_to_omnifocus
     url       = "https://github.com/#{issue.repository.full_name}/issues/#{number}"
     note      = "#{url}\n\n#{issue["body"]}"
 
-    task_name = title
-    # Create the task notes with the GitHub Issue URL and issue body
-    task_notes = note
-
-    # Build properties for the Task
-    @props = {}
-    @props['name'] = task_name
-    @props['project'] = @project
-    @props['context'] = @context
-    @props['note'] = task_notes
-    @props['flagged'] = @flag
-
-    add_task(@props)
+    add_task(name: title, note: note)
   end
 end
 
