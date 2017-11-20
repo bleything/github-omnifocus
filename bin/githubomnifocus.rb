@@ -10,11 +10,11 @@ require 'yaml'
 Octokit.auto_paginate = true
 
 # This method adds a new Task to OmniFocus based on the new_task_properties passed in
-def add_task(omnifocus_document, new_task_properties)
+def add_task(new_task_properties)
   # If there is a passed in OF project name, get the actual project object
   if new_task_properties['project']
     proj_name = new_task_properties["project"]
-    proj = omnifocus_document.flattened_tasks[proj_name]
+    proj = @omnifocus.flattened_tasks[proj_name]
   end
 
   # Check to see if there's already an OF Task with that name in the referenced Project
@@ -22,13 +22,13 @@ def add_task(omnifocus_document, new_task_properties)
   name   = new_task_properties["name"]
   #exists = proj.tasks.get.find { |t| t.name.get.force_encoding("UTF-8") == name }
   # You can un-comment the line below and comment the line above if you want to search your entire OF document, instead of a specific project.
-  exists = omnifocus_document.flattened_tasks.get.find { |t| t.name.get.force_encoding("UTF-8") == name }
+  exists = @omnifocus.flattened_tasks.get.find { |t| t.name.get.force_encoding("UTF-8") == name }
   return false if exists
 
   # If there is a passed in OF context name, get the actual context object
   if new_task_properties['context']
     ctx_name = new_task_properties["context"]
-    ctx = omnifocus_document.flattened_contexts[ctx_name]
+    ctx = @omnifocus.flattened_contexts[ctx_name]
   end
 
   # Do some task property filtering.  I don't know what this is for, but found it in several other scripts that didn't work...
@@ -43,7 +43,7 @@ def add_task(omnifocus_document, new_task_properties)
   tprops[:context] = ctx if new_task_properties['context']
 
   # You can uncomment this line and comment the one below if you want the tasks to end up in your Inbox instead of a specific Project
-  #  new_task = omnifocus_document.make(new: :inbox_task, with_properties: tprops)
+  #  new_task = @omnifocus.make(new: :inbox_task, with_properties: tprops)
 
   # Make a new Task in the Project
   proj.make(new: :task, with_properties: tprops)
@@ -53,7 +53,7 @@ def add_task(omnifocus_document, new_task_properties)
 end
 
 # This method is responsible for getting your assigned GitHub Issues and adding them to OmniFocus as Tasks
-def add_github_issues_to_omnifocus (omnifocus_document)
+def add_github_issues_to_omnifocus
   # Get the open GitHub issues assigned to you
   results = {}
 
@@ -92,13 +92,13 @@ def add_github_issues_to_omnifocus (omnifocus_document)
     @props['note'] = task_notes
     @props['flagged'] = @flag
 
-    add_task(omnifocus_document, @props)
+    add_task(@props)
   end
 end
 
-def mark_resolved_github_issues_as_complete_in_omnifocus (omnifocus_document)
+def mark_resolved_github_issues_as_complete_in_omnifocus
   # get tasks from the project
-  ctx = omnifocus_document.flattened_contexts[@context]
+  ctx = @omnifocus.flattened_contexts[@context]
   ctx.tasks.get.find.each do |task|
     if !task.completed.get && task.note.get.match('github')
       note = task.note.get
@@ -118,11 +118,11 @@ def mark_resolved_github_issues_as_complete_in_omnifocus (omnifocus_document)
         # Check to see if the GitHub issue has been unassigned or assigned to someone else, if so delete it.
         # It will be re-created if it is assigned back to you.
         if ! issue.assignee
-          omnifocus_document.delete task
+          @omnifocus.delete task
         else
           assignee = issue.assignee.login.downcase
           if assignee != @username.downcase
-            omnifocus_document.delete task
+            @omnifocus.delete task
           end
         end
       end
@@ -158,8 +158,8 @@ if $0 == __FILE__
   end
 
   @github.user.login
+  @omnifocus = Appscript.app.by_name("OmniFocus").default_document
 
-  omnifocus_document = Appscript.app.by_name("OmniFocus").default_document
-  add_github_issues_to_omnifocus(omnifocus_document)
-  mark_resolved_github_issues_as_complete_in_omnifocus(omnifocus_document)
+  add_github_issues_to_omnifocus
+  mark_resolved_github_issues_as_complete_in_omnifocus
 end
