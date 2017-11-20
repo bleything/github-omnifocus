@@ -9,20 +9,6 @@ require 'yaml'
 
 Octokit.auto_paginate = true
 
-def get_issues
-  github_issues = Hash.new
-
-  @github.list_issues.each do |issue|
-    number    = issue.number
-    project   = issue.repository.full_name.split("/").last
-    issue_id = "#{project}-##{number}"
-
-    github_issues[issue_id] = issue
-  end
-
-  return github_issues
-end
-
 # This method adds a new Task to OmniFocus based on the new_task_properties passed in
 def add_task(omnifocus_document, new_task_properties)
   # If there is a passed in OF project name, get the actual project object
@@ -68,9 +54,18 @@ end
 
 # This method is responsible for getting your assigned GitHub Issues and adding them to OmniFocus as Tasks
 def add_github_issues_to_omnifocus (omnifocus_document)
-  # Get the open Jira issues assigned to you
-  results = get_issues
-  if results.nil?
+  # Get the open GitHub issues assigned to you
+  results = {}
+
+  @github.list_issues.each do |issue|
+    number    = issue.number
+    project   = issue.repository.full_name.split("/").last
+    issue_id = "#{project}-##{number}"
+
+    results[issue_id] = issue
+  end
+
+  if results.empty?
     puts "No results from GitHub"
     exit
   end
