@@ -11,20 +11,7 @@ require 'yaml'
 Octokit.auto_paginate = true
 
 def get_opts
-  if  File.file?(ENV['HOME']+'/.ghofsync.yaml')
-    config = YAML.load_file(ENV['HOME']+'/.ghofsync.yaml')
-  else config = YAML.load <<-EOS
-  #YAML CONFIG EXAMPLE
----
-github:
-  username: ''
-  password: ''
-omnifocus:
-  context:  'Office'
-  project:  'GitHub'
-  flag: true
-EOS
-  end
+  config = YAML.load_file(ENV['HOME']+'/.ghofsync.yaml')
 
   return Trollop::options do
     banner ""
@@ -198,6 +185,13 @@ def mark_resolved_github_issues_as_complete_in_omnifocus (omnifocus_document)
 end
 
 if $0 == __FILE__
+  config_path = "#{ENV['HOME']}/.ghofsync.yaml"
+
+  unless File.file? config_path
+    $stderr.puts "You must create ~/.ghofsync.yaml to continue. See the README for details."
+    exit 1
+  end
+
   $opts = get_opts
   omnifocus_document = Appscript.app.by_name("OmniFocus").default_document
   add_github_issues_to_omnifocus(omnifocus_document)
