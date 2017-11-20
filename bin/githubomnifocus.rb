@@ -40,14 +40,15 @@ KNOWN ISSUES:
 
 ---
 EOS
-  version 'ghofsync 1.1.0'
-    opt :username,  'github Username',        :type => :string,   :short => 'u', :required => false,   :default => config["github"]["username"]
-    opt :password,  'github Password',        :type => :string,   :short => 'p', :required => false,   :default => config["github"]["password"]
-    opt :oauth,      'github oauth token',      :type => :string,   :short => 'o', :required => false,   :default => config["github"]["oauth"]
-    opt :context,   'OF Default Context',   :type => :string,   :short => 'c', :required => false,   :default => config["omnifocus"]["context"]
-    opt :project,   'OF Default Project',   :type => :string,   :short => 'r', :required => false,   :default => config["omnifocus"]["project"]
-    opt :flag,      'Flag tasks in OF',     :type => :boolean,  :short => 'f', :required => false,   :default => config["omnifocus"]["flag"]
-    opt :quiet,     'Disable output',       :type => :boolean,   :short => 'q',                      :default => true
+    version 'ghofsync 1.1.0'
+
+    opt :username, 'github Username',    :type => :string,  :short => 'u', :required => false, :default => config["github"]["username"]
+    opt :password, 'github Password',    :type => :string,  :short => 'p', :required => false, :default => config["github"]["password"]
+    opt :oauth,    'github oauth token', :type => :string,  :short => 'o', :required => false, :default => config["github"]["oauth"]
+    opt :context,  'OF Default Context', :type => :string,  :short => 'c', :required => false, :default => config["omnifocus"]["context"]
+    opt :project,  'OF Default Project', :type => :string,  :short => 'r', :required => false, :default => config["omnifocus"]["project"]
+    opt :flag,     'Flag tasks in OF',   :type => :boolean, :short => 'f', :required => false, :default => config["omnifocus"]["flag"]
+    opt :quiet,    'Disable output',     :type => :boolean, :short => 'q',                     :default => true
   end
 end
 
@@ -71,9 +72,9 @@ def get_issues
 
     github_issues[issue_id] = issue
   end
+
   return github_issues
 end
-
 
 # This method adds a new Task to OmniFocus based on the new_task_properties passed in
 def add_task(omnifocus_document, new_task_properties)
@@ -129,7 +130,6 @@ def add_github_issues_to_omnifocus (omnifocus_document)
 
   # Iterate through resulting issues.
   results.each do |issue_id, issue|
-
     pr        = issue["pull_request"] && !issue["pull_request"]["diff_url"].nil?
     number    = issue.number
     project   = issue.repository.full_name.split("/").last
@@ -149,6 +149,7 @@ def add_github_issues_to_omnifocus (omnifocus_document)
     @props['context'] = $opts[:context]
     @props['note'] = task_notes
     @props['flagged'] = $opts[:flag]
+
     add_task(omnifocus_document, @props)
   end
 end
@@ -158,7 +159,6 @@ def mark_resolved_github_issues_as_complete_in_omnifocus (omnifocus_document)
   ctx = omnifocus_document.flattened_contexts[$opts[:context]]
   ctx.tasks.get.find.each do |task|
     if !task.completed.get && task.note.get.match('github')
-
       note = task.note.get
       repo, number = note.match(/https:\/\/github.com\/(.*)?\/issues\/(.*)/i).captures
 
@@ -205,8 +205,6 @@ end
 def get_omnifocus_document
   return Appscript.app.by_name("OmniFocus").default_document
 end
-
-
 
 def main ()
   if app_is_running("OmniFocus")
