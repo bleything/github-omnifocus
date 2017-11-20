@@ -1,13 +1,12 @@
 #!/usr/bin/env ruby
 
 require 'bundler/setup'
-Bundler.require(:default)
 
-require 'rb-scpt'
-require 'yaml'
-require 'net/http'
-require 'pathname'
 require 'octokit'
+require 'rb-scpt'
+require 'trollop'
+
+require 'yaml'
 
 Octokit.auto_paginate = true
 
