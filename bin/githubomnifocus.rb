@@ -42,13 +42,13 @@ KNOWN ISSUES:
 EOS
     version 'ghofsync 1.1.0'
 
-    opt :username, 'github Username',    :type => :string,  :short => 'u', :required => false, :default => config["github"]["username"]
-    opt :password, 'github Password',    :type => :string,  :short => 'p', :required => false, :default => config["github"]["password"]
-    opt :oauth,    'github oauth token', :type => :string,  :short => 'o', :required => false, :default => config["github"]["oauth"]
-    opt :context,  'OF Default Context', :type => :string,  :short => 'c', :required => false, :default => config["omnifocus"]["context"]
-    opt :project,  'OF Default Project', :type => :string,  :short => 'r', :required => false, :default => config["omnifocus"]["project"]
-    opt :flag,     'Flag tasks in OF',   :type => :boolean, :short => 'f', :required => false, :default => config["omnifocus"]["flag"]
-    opt :quiet,    'Disable output',     :type => :boolean, :short => 'q',                     :default => true
+    opt :username, 'github Username',    type: :string,  short: 'u', required: false, default: config["github"]["username"]
+    opt :password, 'github Password',    type: :string,  short: 'p', required: false, default: config["github"]["password"]
+    opt :oauth,    'github oauth token', type: :string,  short: 'o', required: false, default: config["github"]["oauth"]
+    opt :context,  'OF Default Context', type: :string,  short: 'c', required: false, default: config["omnifocus"]["context"]
+    opt :project,  'OF Default Project', type: :string,  short: 'r', required: false, default: config["omnifocus"]["project"]
+    opt :flag,     'Flag tasks in OF',   type: :boolean, short: 'f', required: false, default: config["omnifocus"]["flag"]
+    opt :quiet,    'Disable output',     type: :boolean, short: 'q',                  default: true
   end
 end
 
@@ -56,10 +56,10 @@ def get_issues
   github_issues = Hash.new
 
   if $opts[:username] && $opts[:password]
-    client = Octokit::Client.new(:login => $opts[:username], :password => $opts[:password])
+    client = Octokit::Client.new(login: $opts[:username], password: $opts[:password])
     client.user.login
   elsif $opts[:username] && $opts[:oauth]
-    client = Octokit::Client.new :access_token => $opts[:oauth]
+    client = Octokit::Client.new access_token: $opts[:oauth]
     client.user.login
   else
     puts "No username and password or username and oauth token combo found!"
@@ -110,10 +110,10 @@ def add_task(omnifocus_document, new_task_properties)
   tprops[:context] = ctx if new_task_properties['context']
 
   # You can uncomment this line and comment the one below if you want the tasks to end up in your Inbox instead of a specific Project
-  #  new_task = omnifocus_document.make(:new => :inbox_task, :with_properties => tprops)
+  #  new_task = omnifocus_document.make(new: :inbox_task, with_properties: tprops)
 
   # Make a new Task in the Project
-  proj.make(:new => :task, :with_properties => tprops)
+  proj.make(new: :task, with_properties: tprops)
 
   puts "Created task " + tprops[:name]
   return true
@@ -163,10 +163,10 @@ def mark_resolved_github_issues_as_complete_in_omnifocus (omnifocus_document)
       repo, number = note.match(/https:\/\/github.com\/(.*)?\/issues\/(.*)/i).captures
 
       if $opts[:username] && $opts[:password]
-        client = Octokit::Client.new(:login => $opts[:username], :password => $opts[:password])
+        client = Octokit::Client.new(login: $opts[:username], password: $opts[:password])
         client.user.login
       elsif $opts[:username] && $opts[:oauth]
-        client = Octokit::Client.new :access_token => $opts[:oauth]
+        client = Octokit::Client.new access_token: $opts[:oauth]
         client.user.login
       else
         puts "No username and password or username and oauth token combo found!"
