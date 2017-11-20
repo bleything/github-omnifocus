@@ -1,8 +1,15 @@
 ---
+# Only one of `password` or `token` are required. You must use `token` if you
+# use two-factor auth on GitHub. You should probably use a token even if you
+# don't, but you can use `password` if you want.
+#
+# See https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/
+# for details on creating a Personal Access Token. You want full `repo` scope.
 github:
   username: 'me'
   password: 'secret'
-  oauth:   ''
+  token:
+
 omnifocus:
   context:  'Office'
   project:  'GitHub'

@@ -111,17 +111,17 @@ if $0 == __FILE__
 
   @username = config['github']['username']
   @password = config['github']['password']
-  @oauth    = config['github']['oauth']
+  @token    = config['github']['token']
   @context  = config['omnifocus']['context']
   @project  = config['omnifocus']['project']
   @flag     = config['omnifocus']['flag']
 
   if @username and @password
     @github = Octokit::Client.new(login: @username, password: @password)
-  elsif @username and @oauth
-    @github = Octokit::Client.new(access_token: @oauth)
+  elsif @username and @token
+    @github = Octokit::Client.new(access_token: @token)
   else
-    $stderr.puts "No username and password or username and oauth token combo found!"
+    $stderr.puts "No username and password or username and token combo found!"
     exit 1
   end
 
