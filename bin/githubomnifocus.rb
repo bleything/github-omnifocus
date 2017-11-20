@@ -4,39 +4,10 @@ require 'bundler/setup'
 
 require 'octokit'
 require 'rb-scpt'
-require 'trollop'
 
 require 'yaml'
 
 Octokit.auto_paginate = true
-
-def get_opts
-  config = YAML.load_file(ENV['HOME']+'/.ghofsync.yaml')
-
-  return Trollop::options do
-    banner ""
-    banner <<-EOS
-    GitHub OmniFocus Sync Tool
-
-Usage:
-       ghofsync [options]
-
-KNOWN ISSUES:
-      * With long names you must use an equal sign ( i.e. --hostname=test-target-1 )
-
----
-EOS
-    version 'ghofsync 1.1.0'
-
-    opt :username, 'github Username',    type: :string,  short: 'u', default: config["github"]["username"],   required: false
-    opt :password, 'github Password',    type: :string,  short: 'p', default: config["github"]["password"],   required: false
-    opt :oauth,    'github oauth token', type: :string,  short: 'o', default: config["github"]["oauth"],      required: false
-    opt :context,  'OF Default Context', type: :string,  short: 'c', default: config["omnifocus"]["context"], required: false
-    opt :project,  'OF Default Project', type: :string,  short: 'r', default: config["omnifocus"]["project"], required: false
-    opt :flag,     'Flag tasks in OF',   type: :boolean, short: 'f', default: config["omnifocus"]["flag"],    required: false
-    opt :quiet,    'Disable output',     type: :boolean, short: 'q', default: true
-  end
-end
 
 def get_issues
   github_issues = Hash.new
@@ -121,10 +92,10 @@ def add_github_issues_to_omnifocus (omnifocus_document)
     # Build properties for the Task
     @props = {}
     @props['name'] = task_name
-    @props['project'] = $opts[:project]
-    @props['context'] = $opts[:context]
+    @props['project'] = @project
+    @props['context'] = @context
     @props['note'] = task_notes
-    @props['flagged'] = $opts[:flag]
+    @props['flagged'] = @flag
 
     add_task(omnifocus_document, @props)
   end
@@ -132,7 +103,7 @@ end
 
 def mark_resolved_github_issues_as_complete_in_omnifocus (omnifocus_document)
   # get tasks from the project
-  ctx = omnifocus_document.flattened_contexts[$opts[:context]]
+  ctx = omnifocus_document.flattened_contexts[@context]
   ctx.tasks.get.find.each do |task|
     if !task.completed.get && task.note.get.match('github')
       note = task.note.get
@@ -155,7 +126,7 @@ def mark_resolved_github_issues_as_complete_in_omnifocus (omnifocus_document)
           omnifocus_document.delete task
         else
           assignee = issue.assignee.login.downcase
-          if assignee != $opts[:username].downcase
+          if assignee != @username.downcase
             omnifocus_document.delete task
           end
         end
@@ -172,12 +143,20 @@ if $0 == __FILE__
     exit 1
   end
 
-  $opts = get_opts
+  config = YAML.load_file(config_path)
+  creds = config['github']
 
-  if $opts[:username] && $opts[:password]
-    @github = Octokit::Client.new(login: $opts[:username], password: $opts[:password])
-  elsif $opts[:username] && $opts[:oauth]
-    @github = Octokit::Client.new access_token: $opts[:oauth]
+  @username = config['github']['username']
+  @password = config['github']['password']
+  @oauth    = config['github']['oauth']
+  @context  = config['omnifocus']['context']
+  @project  = config['omnifocus']['project']
+  @flag     = config['omnifocus']['flag']
+
+  if @username and @password
+    @github = Octokit::Client.new(login: @username, password: @password)
+  elsif @username and @oauth
+    @github = Octokit::Client.new(access_token: @oauth)
   else
     $stderr.puts "No username and password or username and oauth token combo found!"
     exit 1
