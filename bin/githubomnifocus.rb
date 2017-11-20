@@ -42,13 +42,13 @@ KNOWN ISSUES:
 EOS
     version 'ghofsync 1.1.0'
 
-    opt :username, 'github Username',    type: :string,  short: 'u', required: false, default: config["github"]["username"]
-    opt :password, 'github Password',    type: :string,  short: 'p', required: false, default: config["github"]["password"]
-    opt :oauth,    'github oauth token', type: :string,  short: 'o', required: false, default: config["github"]["oauth"]
-    opt :context,  'OF Default Context', type: :string,  short: 'c', required: false, default: config["omnifocus"]["context"]
-    opt :project,  'OF Default Project', type: :string,  short: 'r', required: false, default: config["omnifocus"]["project"]
-    opt :flag,     'Flag tasks in OF',   type: :boolean, short: 'f', required: false, default: config["omnifocus"]["flag"]
-    opt :quiet,    'Disable output',     type: :boolean, short: 'q',                  default: true
+    opt :username, 'github Username',    type: :string,  short: 'u', default: config["github"]["username"],   required: false
+    opt :password, 'github Password',    type: :string,  short: 'p', default: config["github"]["password"],   required: false
+    opt :oauth,    'github oauth token', type: :string,  short: 'o', default: config["github"]["oauth"],      required: false
+    opt :context,  'OF Default Context', type: :string,  short: 'c', default: config["omnifocus"]["context"], required: false
+    opt :project,  'OF Default Project', type: :string,  short: 'r', default: config["omnifocus"]["project"], required: false
+    opt :flag,     'Flag tasks in OF',   type: :boolean, short: 'f', default: config["omnifocus"]["flag"],    required: false
+    opt :quiet,    'Disable output',     type: :boolean, short: 'q', default: true
   end
 end
 
