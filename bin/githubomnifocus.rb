@@ -205,7 +205,7 @@ def get_omnifocus_document
   return Appscript.app.by_name("OmniFocus").default_document
 end
 
-def main ()
+if $0 == __FILE__
   if app_is_running("OmniFocus")
     $opts = get_opts
     omnifocus_document = get_omnifocus_document
@@ -213,5 +213,3 @@ def main ()
     mark_resolved_github_issues_as_complete_in_omnifocus(omnifocus_document)
   end
 end
-
-main
