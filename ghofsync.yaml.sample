@@ -10,7 +10,17 @@ github:
   password: 'secret'
   token:
 
+# You can specify a context and a project in which to create tasks. You can also
+# remove these keys if you don't want to use contexts or projects. If you remove
+# `project`, new tasks will be created in the inbox.
+#
+# If `flag` is set to `true`, we'll flag all new tasks.
+#
+# If `search_scope` is `everywhere`, we'll search for existing tasks across all
+# of OmniFocus. If it's set to `project` we'll only search within the given
+# project. If there's no project set, we'll search everywhere.
 omnifocus:
-  context:  'Office'
-  project:  'GitHub'
-  flag:     true
+  context: 'Office'
+  project: 'GitHub'
+  search_scope: 'project'
+  flag: true

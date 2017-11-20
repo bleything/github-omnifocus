@@ -11,25 +11,28 @@ Octokit.auto_paginate = true
 
 # This method adds a new Task to OmniFocus based on the new_task_properties passed in
 def add_task(task)
-  # Check to see if there's already an OF Task with that name in the referenced Project
-  # If there is, just stop.
-  name = task[:name]
-  #exists = proj.tasks.get.find { |t| t.name.get.force_encoding("UTF-8") == name }
-  # You can un-comment the line below and comment the line above if you want to search your entire OF document, instead of a specific project.
-  exists = @omnifocus.flattened_tasks.get.find { |t| t.name.get.force_encoding("UTF-8") == name }
-  return false if exists
+  # Check to see if there's already an OF Task with that name. If there is, just stop.
+  if @scope == 'everywhere' or @project.nil? or @project.empty?
+    to_search = @omnifocus.flattened_tasks
+  else
+    to_search = @omnifocus.flattened_tasks[@project].tasks
+  end
 
-  task[:context] = @omnifocus.flattened_contexts[@context]
+  return if to_search.get.find {|t| t.name.get.force_encoding("UTF-8") == task[:name] }
+
+  if @context
+    task[:context] = @omnifocus.flattened_contexts[@context]
+  end
+
   task[:flagged] = @flag
 
-  # You can uncomment this line and comment the one below if you want the tasks to end up in your Inbox instead of a specific Project
-  #  new_task = @omnifocus.make(new: :inbox_task, with_properties: tprops)
-
-  # Make a new Task in the Project
-  @omnifocus.flattened_tasks[@project].make(new: :task, with_properties: task)
+  if @project
+    @omnifocus.flattened_tasks[@project].make(new: :task, with_properties: task)
+  else
+    @omnifocus.make(new: :inbox_task, with_properties: task)
+  end
 
   puts "Created task " + task[:name]
-  return true
 end
 
 # This method is responsible for getting your assigned GitHub Issues and adding them to OmniFocus as Tasks
@@ -113,6 +116,7 @@ if $0 == __FILE__
   @context  = config['omnifocus']['context']
   @project  = config['omnifocus']['project']
   @flag     = config['omnifocus']['flag']
+  @scope    = config['omnifocus']['search_scope']
 
   password = config['github']['password']
   token    = config['github']['token']
