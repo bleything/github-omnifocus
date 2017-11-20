@@ -201,14 +201,10 @@ def app_is_running(app_name)
   `ps aux` =~ /#{app_name}/ ? true : false
 end
 
-def get_omnifocus_document
-  return Appscript.app.by_name("OmniFocus").default_document
-end
-
 if $0 == __FILE__
   if app_is_running("OmniFocus")
     $opts = get_opts
-    omnifocus_document = get_omnifocus_document
+    omnifocus_document = Appscript.app.by_name("OmniFocus").default_document
     add_github_issues_to_omnifocus(omnifocus_document)
     mark_resolved_github_issues_as_complete_in_omnifocus(omnifocus_document)
   end
