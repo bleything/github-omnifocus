@@ -41,17 +41,7 @@ end
 def get_issues
   github_issues = Hash.new
 
-  if $opts[:username] && $opts[:password]
-    client = Octokit::Client.new(login: $opts[:username], password: $opts[:password])
-    client.user.login
-  elsif $opts[:username] && $opts[:oauth]
-    client = Octokit::Client.new access_token: $opts[:oauth]
-    client.user.login
-  else
-    puts "No username and password or username and oauth token combo found!"
-  end
-
-  client.list_issues.each do |issue|
+  @github.list_issues.each do |issue|
     number    = issue.number
     project   = issue.repository.full_name.split("/").last
     issue_id = "#{project}-##{number}"
@@ -148,17 +138,7 @@ def mark_resolved_github_issues_as_complete_in_omnifocus (omnifocus_document)
       note = task.note.get
       repo, number = note.match(/https:\/\/github.com\/(.*)?\/issues\/(.*)/i).captures
 
-      if $opts[:username] && $opts[:password]
-        client = Octokit::Client.new(login: $opts[:username], password: $opts[:password])
-        client.user.login
-      elsif $opts[:username] && $opts[:oauth]
-        client = Octokit::Client.new access_token: $opts[:oauth]
-        client.user.login
-      else
-        puts "No username and password or username and oauth token combo found!"
-      end
-
-      issue = client.issue(repo, number)
+      issue = @github.issue(repo, number)
       if issue != nil
         if issue.state == 'closed'
           # if resolved, mark it as complete in OmniFocus
@@ -193,6 +173,18 @@ if $0 == __FILE__
   end
 
   $opts = get_opts
+
+  if $opts[:username] && $opts[:password]
+    @github = Octokit::Client.new(login: $opts[:username], password: $opts[:password])
+  elsif $opts[:username] && $opts[:oauth]
+    @github = Octokit::Client.new access_token: $opts[:oauth]
+  else
+    $stderr.puts "No username and password or username and oauth token combo found!"
+    exit 1
+  end
+
+  @github.user.login
+
   omnifocus_document = Appscript.app.by_name("OmniFocus").default_document
   add_github_issues_to_omnifocus(omnifocus_document)
   mark_resolved_github_issues_as_complete_in_omnifocus(omnifocus_document)
